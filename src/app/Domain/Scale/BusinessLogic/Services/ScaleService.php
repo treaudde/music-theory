@@ -12,6 +12,7 @@ class ScaleService
 
     const WHOLE_STEP = 2;
     const HALF_STEP = 1;
+    const MINOR_THIRD = 3;
 
     public function __construct()
     {
@@ -51,6 +52,20 @@ class ScaleService
         return $this->generateScale($key, $rules);
     }
 
+    public function harmonicMinor($key)
+    {
+        $rules = [
+            self::WHOLE_STEP,
+            self::HALF_STEP,
+            self::WHOLE_STEP,
+            self::WHOLE_STEP,
+            self::HALF_STEP,
+            self::WHOLE_STEP,
+            self::MINOR_THIRD
+        ];
+
+        return $this->generateScale($key, $rules);
+    }
 
     private function generateScale($key, $rules)
     {
@@ -71,26 +86,42 @@ class ScaleService
 
     private function composeScale($startingPosition, $rules)
     {
-        //handle the wrap around
-        $endHalfStep = count($this->chromaticScale) + 1;
-        $endWholeStep = count($this->chromaticScale) + 2;
-
         $composedScale = [];
 
+        $composedScale[] = $this->chromaticScale[$startingPosition];
+        $currentPosition = $startingPosition;
+
         for ($x=0; $x<count($rules); $x++) {
+            $currentPosition += $rules[$x];
+            $currentPosition = $this->resetCurrentPosition($currentPosition);
 
-            $composedScale[] = $this->chromaticScale[$startingPosition];
-            $startingPosition += $rules[$x];
+            $composedScale[] = $this->chromaticScale[$currentPosition];
 
-            if ($startingPosition == $endHalfStep) {
-                $startingPosition = 0;
-            }
-
-            if ($startingPosition == $endWholeStep) {
-                $startingPosition = 1;
-            }
         }
 
         return $composedScale;
+    }
+
+
+    private function resetCurrentPosition($currentPosition)
+    {
+        //handle the wrap around
+        $endHalfStep = count($this->chromaticScale) + 1;
+        $endWholeStep = count($this->chromaticScale) + 2;
+        $endMinorThird = count($this->chromaticScale) + 3;
+
+        if ($currentPosition == $endHalfStep) {
+            return 0;
+        }
+
+        if ($currentPosition == $endWholeStep) {
+            return 1;
+        }
+
+        if ($currentPosition == $endMinorThird) {
+            return 2;
+        }
+
+        return $currentPosition;
     }
 }
